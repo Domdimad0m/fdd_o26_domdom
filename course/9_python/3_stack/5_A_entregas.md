@@ -19,7 +19,7 @@ Una entrega, por pull request. Esta página es la versión en tabla de lo que di
 
 | # | Entrega | Vence | Vale | Branch | Carpeta |
 |---:|---|---|---:|---|---|
-| 1 | DataCamp *Software Engineering Principles in Python* (capítulos 3 y 4), la práctica y tu `AGENTS.md` | 2026-10-15 | 20 | `tarea-09-stack` | `09_python/stack/` |
+| 1 | DataCamp *Software Engineering Principles in Python* (capítulos 3 y 4), la práctica y tu `AGENTS.md` | 2026-10-27 | 20 | `tarea-09-stack` | `09_python/stack/` |
 
 :::
 
@@ -33,7 +33,7 @@ Los comandos son para la terminal de **Linux, WSL2 o macOS**. `{tu_fork_de_la_cl
 
 | | |
 |---|---|
-| **Vence** | 2026-10-15 |
+| **Vence** | 2026-10-27 |
 | **Vale** | 20 puntos |
 | **Branch** | `tarea-09-stack` |
 | **Carpeta** | `estudiantes/<tu-login>/09_python/stack/` |
@@ -130,6 +130,8 @@ Si la revisión sale roja, corrige y haz push a la **misma** branch: no vuelvas 
 
 ## Orden sugerido
 
+El plazo original era el 2026-10-15; se movió al **2026-10-27**, sin penalización antes de esa fecha. La tabla de abajo es el orden original: úsala como guía de qué va antes de qué.
+
 | Día | Qué |
 |---|---|
 | Jue 2026-10-08 | La clase: ritual, notebooks, [[patrones-del-stack]] |
@@ -138,7 +140,7 @@ Si la revisión sale roja, corrige y haz push a la **misma** branch: no vuelvas 
 | Lun 12 | `practica.py` hasta que dé los mismos totales que `ventas_ia.py` |
 | Mar 13 | **Vence `tarea-09-por-dentro`**: termina ésa primero |
 | Mié 14 | `test_practica.py`, los tres comandos, `decisiones.md` y `AGENTS.md` |
-| Jue 2026-10-15 | Notebooks limpios, ritual de entrega, pull request en verde |
+| Mar 2026-10-27 | **Nuevo plazo.** Notebooks limpios, ritual de entrega, pull request en verde |
 
 ## Qué debes poder explicar sin ayuda
 
