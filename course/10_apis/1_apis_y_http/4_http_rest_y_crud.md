@@ -105,8 +105,8 @@ print(f"1a vez: {r1.status_code} {r1.reason:13} {len(r1.content):>7} bytes  ETag
 print(f"2a vez: {r2.status_code} {r2.reason:13} {len(r2.content):>7} bytes")
 
 p = "https://pokeapi.co/api/v2/pokemon/pikachu"
-r1 = requests.get(p)
-r2 = requests.get(p, headers={"If-None-Match": r1.headers["ETag"]})
+r1 = requests.get(p, timeout=10)
+r2 = requests.get(p, headers={"If-None-Match": r1.headers["ETag"]}, timeout=10)
 print(f"pokeapi 1a vez: {r1.status_code} {len(r1.content):>7,} bytes")
 print(f"pokeapi 2a vez: {r2.status_code} {len(r2.content):>7,} bytes")
 print("Cache-Control:", r1.headers["Cache-Control"])
@@ -117,6 +117,7 @@ print("Cache-Control:", r1.headers["Cache-Control"])
 - `r1.headers["ETag"]` — la huella que el servidor mandó con la primera respuesta.
 - `headers={"If-None-Match": ...}` — la segunda petición dice «ya tengo esta versión; mándamela sólo si cambió».
 - `len(r.content)` — cuántos bytes trajo el body.
+- `timeout=10` — PokeAPI está en internet: si en 10 segundos no contesta, la celda se rinde en vez de colgarse (la página 3 explica por qué `requests` no pone uno solo).
 - `r1.headers["Cache-Control"]` — cuánto tiempo dice el servidor que puedes guardar la respuesta.
 
 **Deberías ver:**
@@ -179,7 +180,7 @@ Una API con hipermedia te dice **a dónde ir después**. GitHub lo hace al pagin
 
 ```python
 r = requests.get("https://api.github.com/repos/python/cpython/issues", params={"per_page": 2},
-                 headers={"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"})
+                 headers={"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}, timeout=10)
 print(r.status_code)
 print("Link:", r.headers.get("Link"))
 print("te quedan:", r.headers.get("X-RateLimit-Remaining"), "de", r.headers.get("X-RateLimit-Limit"))

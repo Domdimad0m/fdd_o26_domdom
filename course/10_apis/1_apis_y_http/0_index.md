@@ -93,6 +93,8 @@ Servidor de ventas en http://127.0.0.1:8026  (Ctrl+C para apagarlo)
 
 **Haz 4 · abre el notebook:** abre `apis.ipynb` en VS Code y elige como kernel (arriba a la derecha) el `.venv` de `10_apis`. El **kernel** es el proceso de Python que corre las celdas del notebook.
 
+**Sin internet.** Todo corre contra tu servidor local, salvo cuatro celdas que salen a internet: 2.2 (example.com), 3.7 (jsonplaceholder), 4.1 (la mitad de PokeAPI) y 4.3 (GitHub, sólo el profesor). Si la red falla en clase, su «Deberías ver» es la salida real, obtenida el 20 de octubre de 2026: léela desde la página y sigue.
+
 ## Arranque del notebook
 
 **Haz (celda 0.1):** importa lo de la clase y comprueba que el servidor contesta.
