@@ -58,6 +58,18 @@ Los comandos son para la terminal de **Linux, WSL2 o macOS**. `{tu_fork_de_la_cl
 - `decisiones.md`: la tabla «qué cambié · por qué · qué patrón» con **al menos tres filas**, y la salida pegada de los tres comandos de abajo.
 - `AGENTS.md`: el stack, la definición de terminado y una regla tuya.
 
+**La práctica, paso a paso.** `practica.py` no se escribe desde cero: `ventas_ia.py` ya hace la pregunta completa con la sintaxis de antes, y tu trabajo es cambiar cada pieza por la del stack de la clase. Abre los dos archivos lado a lado.
+
+| Paso | Qué cambias en `ventas_ia.py` | Dónde lo viste |
+|---:|---|---|
+| 1 | El contrato `Venta`: hoy usa `class Config` y `@validator` (Pydantic v1). Tu clase va en `practica.py`, con la sintaxis de v2 | A.4–A.7 |
+| 2 | La frontera: hoy `Venta(**fila).dict()` por cada fila. Qué fila entra y cuál se descarta lo decide el contrato | A.5, A.9 |
+| 3 | La suma: hoy `.apply` fila por fila con pandas. Polars la hace como una expresión sobre la columna | B.1, B.2 |
+| 4 | El orden y la comparación: corre `python ventas_ia.py`, corre tu archivo y compara los totales por tienda | B.2 |
+| 5 | Las pruebas: copia la forma de `test_fila_buena_se_convierte` para la fila sucia (un precio `"abc"` está en `ventas.csv`) y para un caso borde que se te ocurra a ti | A.11 |
+
+Cada cambio de los pasos 1 a 3 es una fila de `decisiones.md`: qué cambiaste, por qué, y cuál de los ocho patrones de [[patrones-del-stack]] lo explica. Tu `AGENTS.md` sale de lo mismo: las librerías que acabas de usar, los tres comandos de abajo y una regla que aprendiste haciendo esto.
+
 Los tres comandos de `decisiones.md`, en la terminal de `stack/`:
 
 | Comando | Deberías ver al final |
