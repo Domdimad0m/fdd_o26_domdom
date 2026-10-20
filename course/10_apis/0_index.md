@@ -15,8 +15,8 @@ prerequisites: [python]
 
 ## En corto
 
-- **Una fuente de datos que no es un archivo casi siempre es una API**: le pides los datos a un programa que corre en otra máquina, y te contesta por la red.
-- **La primera sección enseña el idioma de esa conversación**: HTTP, sus métodos, sus códigos de estado, y la diferencia entre HTTP, REST y CRUD.
+- **Muchas fuentes de datos son APIs**: en vez de bajar un archivo, le pides los datos a un programa que corre en otra máquina, y te contesta por la red.
+- **La primera sección enseña el protocolo de esa comunicación**: HTTP, sus métodos, sus códigos de estado, y la diferencia entre HTTP, REST y CRUD.
 - **Las demás secciones se agregan aquí cuando llega su clase.**
 
 ## Las secciones

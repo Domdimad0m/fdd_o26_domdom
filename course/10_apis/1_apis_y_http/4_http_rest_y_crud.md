@@ -2,7 +2,7 @@
 id: http-rest-y-crud
 title: "HTTP, REST y CRUD"
 nav_title: "HTTP, REST y CRUD"
-summary: "HTTP, REST y CRUD son tres capas distintas: el protocolo que transporta los mensajes, el estilo con que se organiza una API y las operaciones que haces con los datos. Mezclarlas es la confusión más común al hablar de APIs."
+summary: "HTTP, REST y CRUD son tres conceptos distintos: el protocolo que transporta los mensajes, el estilo con que se organiza una API y las operaciones que haces con los datos. Mezclarlas es la confusión más común al hablar de APIs."
 status: ready
 estimated_time: 17m
 tags: [rest, crud, http, recurso, representacion, cache, sin-estado, rpc, fielding]
@@ -13,7 +13,7 @@ prerequisites: [metodos-y-status]
 
 **Página 4 de 4 · APIs y HTTP**
 
-Meta: distinguir las tres capas, saber qué exige REST y qué cuesta cumplirlo, y decidir entre REST y RPC sobre HTTP.
+Meta: distinguir los tres conceptos, saber qué exige REST y qué cuesta cumplirlo, y decidir entre REST y RPC sobre HTTP.
 
 | Término | Qué es | Lo ves con |
 |---|---|---|
@@ -23,7 +23,7 @@ Meta: distinguir las tres capas, saber qué exige REST y qué cuesta cumplirlo, 
 | **estilo arquitectónico** | Un conjunto de reglas de diseño que, si las cumples, dan ciertas propiedades al sistema | la tesis de Fielding |
 | **restricción** | Una de esas reglas: algo que el sistema **no** puede hacer, a cambio de una propiedad | la tabla de abajo |
 | **REST** | *Representational State Transfer*: un estilo arquitectónico definido por seis restricciones | esta página |
-| **sin estado** | El servidor no guarda nada del cliente entre una petición y la siguiente | la celda 4.2 |
+| **sin estado** | Cada petición trae todo lo necesario para entenderla; el servidor no depende de lo que recuerde de una petición anterior. Sí puede guardar datos (ventas, usuarios, permisos) | la celda 4.2 |
 | **caché** | Una copia guardada de una respuesta, para no volver a pedirla completa | la celda 4.1 |
 | **hipermedia** | Respuestas que traen los enlaces a lo que puedes hacer después | el header Link de GitHub |
 | **CRUD** | *Create, Read, Update, Delete*: las cuatro operaciones básicas sobre datos guardados | la celda 4.4 |
@@ -31,13 +31,13 @@ Meta: distinguir las tres capas, saber qué exige REST y qué cuesta cumplirlo, 
 
 ## En corto
 
-- **HTTP, REST y CRUD son tres capas distintas**: cómo viaja el mensaje, cómo se organiza la API, qué haces con los datos.
+- **HTTP, REST y CRUD son tres conceptos distintos**: cómo viaja el mensaje, cómo se organiza la API, qué haces con los datos.
 - **REST es un estilo con seis restricciones**, cada una con un costo; casi ninguna API que se llama «REST» las cumple todas.
 - **El mapeo CRUD → métodos HTTP es una convención**, no una equivalencia: hay operaciones que no son CRUD, y está bien.
 
-## Tres capas, tres preguntas
+## Tres conceptos, tres preguntas
 
-La confusión clásica es decir «una API REST es una API que usa GET, POST, PUT y DELETE para hacer CRUD». Esa frase mezcla tres cosas de niveles distintos:
+La confusión clásica es decir «una API REST es una API que usa GET, POST, PUT y DELETE para hacer CRUD». Esa frase mezcla tres cosas distintas, que se combinan pero ninguna contiene a otra:
 
 | Capa | Qué es | Pregunta que contesta | Lo define |
 |---|---|---|---|
@@ -46,16 +46,15 @@ La confusión clásica es decir «una API REST es una API que usa GET, POST, PUT
 | **CRUD** | Un **conjunto de operaciones** sobre datos guardados; viene de las bases de datos | ¿Qué le haces a los datos? | Nadie en particular: es vocabulario |
 
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│ CRUD    qué haces con los datos                              │
-│         crear · leer · actualizar · borrar                   │
-├──────────────────────────────────────────────────────────────┤
-│ REST    cómo organizas la API                                │
-│         recursos con URI · representaciones · sin estado …   │
-├──────────────────────────────────────────────────────────────┤
-│ HTTP    cómo viaja cada mensaje                              │
-│         línea inicial · headers · línea en blanco · body     │
-└──────────────────────────────────────────────────────────────┘
+┌─ HTTP ──────────────┐   ┌─ REST ──────────────┐   ┌─ CRUD ──────────────┐
+│ cómo viaja cada     │   │ cómo se organiza    │   │ qué haces con los   │
+│ mensaje             │   │ la API              │   │ datos               │
+│                     │   │                     │   │                     │
+│ línea inicial,      │   │ recursos con URI,   │   │ crear, leer,        │
+│ headers, body,      │   │ representaciones,   │   │ actualizar, borrar  │
+│ métodos, status     │   │ sin estado, caché…  │   │                     │
+└─────────────────────┘   └─────────────────────┘   └─────────────────────┘
+   un protocolo              un estilo de diseño       un vocabulario
 ```
 
 - **Cada capa existe sin las otras.** Puedes usar HTTP sin REST (las APIs de LLM lo hacen), diseñar REST sobre otro protocolo (Fielding no lo ata a HTTP), y hacer CRUD en SQL sin red.
@@ -67,7 +66,7 @@ La confusión clásica es decir «una API REST es una API que usa GET, POST, PUT
 
 **Representación.** Son los bytes que el servidor manda para describir el **estado actual** de un recurso, en un formato. La misma venta puede representarse como JSON o como CSV: el recurso es uno, las representaciones son dos.
 
-**URI** (*Uniform Resource Identifier*). Es el nombre único de un recurso: `/ventas/1`. Una **URL** es una URI que además dice cómo llegar (scheme, host, puerto).
+**URI** (*Uniform Resource Identifier*). Es el identificador de un recurso. `/ventas/1` es una referencia **relativa**: junto con la base `http://127.0.0.1:8026` forma la URI completa. Una **URL** es una URI que además dice cómo llegar (scheme, host, puerto).
 
 **Ya lo viste.** En la celda 2.5 de [[el-mensaje-http]] pediste `/ventas?tienda=Centro` dos veces, cambiando sólo el header `Accept`: una respuesta llegó en JSON y la otra en CSV. **Mismo recurso, dos representaciones.** El header `Content-Type` de cada respuesta dijo cuál era cuál.
 
@@ -80,7 +79,7 @@ REST lo definió **Roy Fielding en su tesis doctoral (2000)**, a partir de lo qu
 | Restricción | Qué exige | Qué ganas | Qué cuesta |
 |---|---|---|---|
 | **Cliente-servidor** | Separar quien pide de quien guarda los datos | Cada lado evoluciona por su cuenta | Toda interacción cruza la red |
-| **Sin estado** | Cada petición trae todo lo necesario; el servidor no recuerda al cliente | Cualquier servidor puede contestar; escalar es agregar servidores | Cada petición repite datos (el token, los filtros) |
+| **Sin estado** | Cada petición trae todo lo necesario; el servidor no guarda una sesión del cliente entre peticiones (los datos, sí) | Cualquier servidor puede contestar; escalar es agregar servidores | Cada petición repite datos (el token, los filtros) |
 | **Caché** | Cada respuesta dice si se puede guardar y por cuánto tiempo | Menos peticiones y menos bytes | Puedes leer una copia vieja |
 | **Interfaz uniforme** | Todos los recursos se manejan igual: URI, representaciones, mensajes autodescriptivos, hipermedia | Herramientas genéricas (navegadores, cachés, proxies) entienden cualquier API | Menos eficiente que una interfaz hecha a la medida |
 | **Sistema en capas** | El cliente no sabe si habla con el servidor final o con un intermediario | Puedes poner cachés, balanceadores y firewalls en medio | Cada capa agrega latencia |
@@ -123,7 +122,7 @@ print("Cache-Control:", r1.headers["Cache-Control"])
 **Deberías ver:**
 
 ```text
-1a vez: 200 OK                 81 bytes  ETag "584c2e1e3532"
+1a vez: 200 OK                 81 bytes  ETag "d788c34b28aa"
 2a vez: 304 Not Modified        0 bytes
 pokeapi 1a vez: 200 309,106 bytes
 pokeapi 2a vez: 304       0 bytes
@@ -132,6 +131,7 @@ Cache-Control: public, max-age=86400, s-maxage=86400
 
 - **309,106 bytes contra 0**: la segunda vez sólo viajaron los headers. Para una fuente de datos que consultas cada hora, esa es la diferencia entre bajar todo y bajar nada.
 - `max-age=86400` — PokeAPI dice que la respuesta vale 86,400 segundos (un día).
+- **Cada representación tiene su propio ETag**: el JSON y el CSV de la misma venta tienen huellas distintas. Por eso tu servidor manda también `Vary: Accept`, que avisa a las cachés que la respuesta depende del header `Accept` y no deben mezclar una con otra.
 - **En la vida real**: la documentación de GitHub dice que una petición condicional contestada con 304 **no cuenta** contra tu límite principal de peticiones, siempre que vaya autenticada. Caché bien usada es cuota ahorrada.
 
 ### Sin estado: cualquier servidor puede contestar
@@ -296,15 +296,15 @@ Cancelar un pedido, enviar un correo, aprobar un pago: son **acciones**, no «cr
 
 ## Decidir: ¿REST o RPC sobre HTTP?
 
-No hay una respuesta correcta para todo. Cada diseño compra algo distinto:
+No hay una respuesta correcta para todo. Cada diseño tiene ventajas y costos distintos:
 
 | Si tu API… | Inclínate por | Por qué |
 |---|---|---|
-| Expone **entidades** que se crean, leen y cambian (ventas, usuarios, archivos) | **REST (nivel 2)** | Recursos + métodos dan caché, reintentos seguros y herramientas genéricas sin escribir nada |
+| Expone **entidades** que se crean, leen y cambian (ventas, usuarios, archivos) | **Orientada a recursos (nivel 2)** | Los métodos con su significado te dejan aprovechar herramientas genéricas; tú implementas sus garantías, defines la caché y decides qué se puede reintentar |
 | Expone **acciones o cálculos** (generar texto, convertir un archivo, enviar un mensaje) | **RPC sobre HTTP** | No hay recurso que leer después; forzar un sustantivo complica sin ganar nada |
-| Tiene **muchos consumidores que no conoces** | **REST** | La interfaz uniforme es la que todos ya saben leer |
+| Tiene **muchos consumidores que no conoces** | **Orientada a recursos** | La interfaz uniforme es la que todos ya saben leer |
 | Tiene **pocos consumidores, conocidos** (tu equipo) | **Cualquiera**; RPC es más directo | El acuerdo cabe en una conversación |
-| Necesita **caché** de lecturas | **REST con GET** | Las cachés intermedias sólo guardan GET (y HEAD) sin configuración especial |
+| Necesita **caché** de lecturas | **GET sobre recursos** | Las cachés intermedias sólo guardan GET (y HEAD) sin configuración especial |
 | Tiene **operaciones largas** (minutos) | **Un recurso para la operación** | Creas el trabajo, y su estado se consulta como cualquier otro recurso |
 
 - **El costo de REST** es diseñar sustantivos y respetar la semántica de cada método.
@@ -323,6 +323,6 @@ Para que sepas qué contestar si sale la pregunta: existe, y no es de esta clase
 - **Versionado** — cómo cambia una API sin romper a quien ya la usa.
 
 > [!NOTE]
-> **Si sólo recuerdas una cosa:** HTTP dice cómo viaja el mensaje, REST cómo se organiza la API y CRUD qué haces con los datos; mezclarlos es el error más común, y elegir REST o RPC es una decisión con costos, no una cuestión de moda.
+> **Si sólo recuerdas una cosa:** HTTP dice cómo viaja el mensaje, REST cómo se organiza la API y CRUD qué haces con los datos; confundirlos es el error más común, y elegir REST o RPC es una decisión con costos, no una cuestión de moda.
 
 Regresa al índice: [[apis-y-http]].

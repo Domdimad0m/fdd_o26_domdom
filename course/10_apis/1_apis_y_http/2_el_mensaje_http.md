@@ -36,7 +36,7 @@ Meta: poder leer —y escribir a mano— una petición y una respuesta HTTP, sab
 
 **Definición.** Un **protocolo** son las reglas que dos programas siguen para comunicarse: qué mensajes existen, en qué orden se mandan y con qué formato. **HTTP** (*Hypertext Transfer Protocol*) es el protocolo de la web; lo definen documentos públicos de la IETF, el organismo que publica los estándares de internet, llamados **RFC** (el de la semántica de HTTP es el RFC 9110, de 2022).
 
-HTTP no viaja solo: va encima de **TCP**, que se encarga de que los bytes lleguen completos y en orden. HTTP decide **qué bytes** mandar; TCP, **que lleguen**.
+En esta clase, HTTP/1.1 viaja sobre **TCP**, que entrega los bytes en orden y sin huecos mientras la conexión siga viva; si la conexión se cae, TCP reporta el error, no lo arregla. HTTP decide **qué bytes** mandar; TCP, **cómo llegan**.
 
 ```text
   tu código          requests.get(...)            ← tú
@@ -48,7 +48,7 @@ HTTP no viaja solo: va encima de **TCP**, que se encarga de que los bytes llegue
   red                paquetes, wifi, cables
 ```
 
-Esta página muestra **HTTP/1.1**, en el que el mensaje es texto que puedes leer. HTTP/2 y HTTP/3 mandan **las mismas partes** codificadas en binario, para ir más rápido; el significado de métodos, headers y códigos es idéntico. Lo que aprendas aquí vale para las tres versiones.
+Esta página muestra **HTTP/1.1**, donde la línea inicial y los headers son texto que puedes leer. **HTTP/2** manda la misma información en tramas binarias sobre TCP, y **HTTP/3** sobre **QUIC**, otro transporte construido sobre UDP. No tienen una línea inicial de texto, pero el significado de métodos, headers, body y códigos de estado es el mismo: lo que aprendas aquí vale para las tres.
 
 ## Las cuatro partes de un mensaje
 
@@ -101,7 +101,8 @@ print(a_mano("127.0.0.1", 8026, peticion))
 HTTP/1.1 200 OK
 Server: VentasFDD/1.0
 Date: Tue, 20 Oct 2026 22:52:05 GMT
-ETag: "584c2e1e3532"
+ETag: "d788c34b28aa"
+Vary: Accept
 Content-Type: application/json
 Content-Length: 81
 
@@ -109,7 +110,7 @@ Content-Length: 81
 ```
 
 - **No hubo librería de por medio**: escribiste texto, el servidor lo entendió y contestó texto. Eso es todo HTTP/1.1.
-- La respuesta tiene las cuatro partes: línea de estado, cinco headers, una línea en blanco y el body en JSON.
+- La respuesta tiene las cuatro partes: línea de estado, seis headers, una línea en blanco y el body en JSON.
 - En la terminal del servidor aparece tu petición con sólo dos headers: los que escribiste.
 
 **Haz (celda 2.2):** lo mismo, contra un servidor real de internet.
@@ -174,7 +175,7 @@ cf-cache-status: HIT
 | **Negociar** | `Accept` | `text/csv` | En qué formatos aceptas la respuesta |
 | **Identificarte** | `Authorization` | `Bearer fdd-2026` | Tu credencial: un **token**, una cadena secreta que prueba quién eres |
 | | `User-Agent` | `python-requests/2.34.2` | Qué programa hace la petición |
-| **Caché** | `ETag` / `If-None-Match` | `"584c2e1e3532"` | Una huella de la versión de los datos (página 4) |
+| **Caché** | `ETag` / `If-None-Match` | `"d788c34b28aa"` | Una huella de la versión de los datos (página 4) |
 | **Siguiente paso** | `Location` | `/ventas/5` | Dónde quedó lo que creaste |
 | | `Allow` | `GET, HEAD` | Qué métodos acepta ese recurso |
 | | `Retry-After` | `30` | Cuántos segundos esperar antes de reintentar |
@@ -212,7 +213,8 @@ ver(r)
 << HTTP/1.1 200 OK
 << Server: VentasFDD/1.0
 << Date: Tue, 20 Oct 2026 22:52:06 GMT
-<< ETag: "584c2e1e3532"
+<< ETag: "d788c34b28aa"
+<< Vary: Accept
 << Content-Type: application/json
 << Content-Length: 81
 <<
@@ -226,7 +228,7 @@ ver(r)
 
 **Definición.** El **body** es la secuencia de bytes que va después de la línea en blanco. Es opcional: un `GET` normalmente no lleva; un `POST` que crea algo, sí.
 
-Dos headers son su manual de lectura:
+Dos headers dicen cómo interpretarlo y dónde termina:
 
 - **`Content-Type`** dice **cómo interpretar** los bytes (JSON, CSV, HTML, imagen).
 - **`Content-Length`** dice **cuántos** bytes son, para que el receptor sepa dónde termina este mensaje y empieza el siguiente en la misma conexión.
@@ -256,7 +258,7 @@ ver(r)
 >> Content-Length: 75
 >> Content-Type: application/json
 >>
->> {"tienda": "Norte", "producto": "café", "cantidad": 2, "precio": 45.0}
+>> {"tienda": "Norte", "producto": "caf\u00e9", "cantidad": 2, "precio": 45.0}
 
 << HTTP/1.1 201 Created
 << Server: VentasFDD/1.0
@@ -269,7 +271,7 @@ ver(r)
 ```
 
 - **`201 Created` y `Location: /ventas/5`**: el servidor creó la venta y te dice dónde quedó.
-- `café` — JSON permite escribir la `é` como código (`é`); el servidor la lee igual. Es la misma palabra.
+- `caf\u00e9` — en la petición, `requests` escribe la `é` como la secuencia JSON `\u00e9` (por eso el body mide 75 bytes). El servidor la convierte en el mismo texto y responde con la `é` literal: es la misma palabra.
 - **Mira la terminal del servidor**: ahí está tu token, `Bearer fdd-2026`, en texto plano.
 
 ### HTTPS: HTTP cifrado
@@ -395,9 +397,9 @@ query:     {'state': ['open'], 'per_page': ['2']}
 fragmento: comentarios
 ```
 
-- Con `requests` no armes la query a mano: pásala en `params=`, como en la 2.5. `requests` se encarga de **codificar** los caracteres especiales (un espacio viaja como `%20`).
+- Con `requests` no armes la query a mano: pásala en `params=`, como en la 2.5. `requests` se encarga de **codificar** los caracteres especiales (en la query, un espacio viaja como `+` o como `%20`).
 
 > [!NOTE]
-> **Si sólo recuerdas una cosa:** una petición HTTP es texto con cuatro partes —línea inicial, headers, línea en blanco, body—; los headers son el manual para leer el body, y si mienten u omiten algo, los datos llegan mal sin ningún error.
+> **Si sólo recuerdas una cosa:** una petición HTTP es texto con cuatro partes —línea inicial, headers, línea en blanco, body—; los headers dicen cómo leer el body, y si mienten u omiten algo, los datos llegan mal sin ningún error.
 
 Sigue con [[metodos-y-status]].

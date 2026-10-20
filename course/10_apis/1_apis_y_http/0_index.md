@@ -15,8 +15,8 @@ Meta: entender qué pasa entre tu código y otra máquina cuando le pides datos,
 
 ## En corto
 
-- **Una API es un contrato entre dos programas**; cuando el otro programa vive en otra máquina, el contrato se cumple mandando mensajes HTTP por la red.
-- **Un mensaje HTTP es texto con un formato fijo**: una línea inicial, headers, una línea en blanco y un body. Lo vas a escribir a mano.
+- **Una API es un contrato entre dos programas.** Esta sección estudia las APIs web: el otro programa vive en otra máquina y el contrato se cumple con mensajes HTTP. No toda API cruza la red, y no todo lo que cruza la red es HTTP.
+- **Un mensaje HTTP/1.1 tiene un formato fijo**: una línea inicial y headers en texto, una línea en blanco y un body de bytes. Lo vas a escribir a mano.
 - **Toda la clase corre contra un servidor que tú arrancas**, y que imprime en su terminal cada petición que recibe: ves los dos lados de la conversación.
 
 ## Las páginas

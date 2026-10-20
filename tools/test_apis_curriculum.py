@@ -168,3 +168,28 @@ def test_exportar_omite_el_charset_a_proposito(servidor):
     assert headers["Content-Type"] == "text/csv"
     _, headers, _ = _pide(f"{servidor}/ventas", headers={"Accept": "text/csv"})
     assert headers["Content-Type"] == "text/csv; charset=utf-8"
+
+
+def test_post_no_pisa_un_id_que_ocupo_un_put(servidor):
+    assert _pide(f"{servidor}/ventas/5", "PUT", {"producto": "pan"}, TOKEN)[0] == 201
+    status, headers, _ = _pide(f"{servidor}/ventas", "POST", {"producto": "té"}, TOKEN)
+    assert status == 201 and headers["Location"] == "/ventas/6"
+
+
+def test_json_y_csv_tienen_etag_distinto_y_vary(servidor):
+    _, h_json, _ = _pide(f"{servidor}/ventas/1")
+    _, h_csv, _ = _pide(f"{servidor}/ventas/1", headers={"Accept": "text/csv"})
+    assert h_json["ETag"] != h_csv["ETag"] and h_json["Vary"] == "Accept"
+    status, _, _ = _pide(f"{servidor}/ventas/1", headers={"Accept": "text/csv",
+                                                         "If-None-Match": h_json["ETag"]})
+    assert status == 200
+
+
+def test_put_con_body_invalido_responde_400(servidor):
+    req = urllib.request.Request(f"{servidor}/ventas/1", data=b"hola", method="PUT", headers=TOKEN)
+    try:
+        urllib.request.urlopen(req, timeout=5)
+        status = 200
+    except urllib.error.HTTPError as e:
+        status = e.code
+    assert status == 400

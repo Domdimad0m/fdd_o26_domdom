@@ -161,7 +161,7 @@ print(f"esperé {time.perf_counter() - inicio:.1f} s")
 **Qué hace cada línea:**
 
 - `params={"lento": 3}` — agrega `?lento=3` a la URL; el servidor de la clase espera 3 segundos antes de contestar.
-- `timeout=1` — el cliente espera como máximo 1 segundo.
+- `timeout=1` — límite para conectarse y para cada espera de datos durante la lectura; **no** es un límite de la duración total. Aquí vence porque en 1 segundo no llega ningún byte.
 - `except requests.Timeout` — atrapa el error que `requests` lanza al vencer el límite.
 
 **Deberías ver:**
@@ -178,12 +178,12 @@ esperé 1.0 s
 Un timeout sólo dice que **no sabes** qué pasó. Hay tres posibilidades y el cliente no puede distinguirlas:
 
 ```text
-cliente                          servidor
-   │── POST /ventas ──────────────▶│
-   │                               │   ¿(a) la petición se perdió en el camino?
-   │       ... 1 s sin respuesta   │   ¿(b) el servidor la procesó y la respuesta se perdió?
-   │                               │   ¿(c) el servidor sigue procesándola?
-   │  timeout: «no sé»             │
+(a) cliente ── POST ──────X                        servidor   (nunca llegó)
+(b) cliente ── POST ─────────────────────────────▶ servidor   (la guardó)
+    cliente ◀──────X──────── 201 ──────────────── servidor   (la respuesta se perdió)
+(c) cliente ── POST ─────────────────────────────▶ servidor   (sigue trabajando)
+
+    En los tres casos el cliente sólo ve lo mismo: 1 s sin respuesta → timeout, «no sé».
 ```
 
 Si reintentas y era (b) o (c), **la operación se hace dos veces**. Con un `GET` o un `PUT` no importa: son idempotentes. Con un `POST` que crea una venta, o que cobra una tarjeta, sí importa.
@@ -264,15 +264,15 @@ ventas: 5 (había 4)
 
 **Definición.** El **status** es un número de tres dígitos en la línea de estado. El primer dígito es la **clase**; los otros dos, el caso.
 
-**Para qué existe.** Un programa decide qué hacer **sin leer el body**: seguir, corregir, esperar o reintentar. Por eso la clase importa más que el número exacto.
+**Para qué existe.** Un programa decide qué hacer **sin leer el body**. La clase da la primera orientación; el código exacto y sus headers deciden: corregir, autenticarse, esperar, resolver un conflicto o reintentar.
 
 | Clase | Significa | Quién actúa |
 |---|---|---|
 | **1xx** | Información intermedia; la respuesta final viene después | nadie (casi nunca lo ves) |
 | **2xx** | Éxito | nadie: usa la respuesta |
 | **3xx** | El recurso está en otro lado, o no cambió | el cliente sigue `Location` o usa su copia |
-| **4xx** | La petición está mal | **el cliente** corrige su petición; repetirla igual falla igual |
-| **5xx** | El servidor falló | **el cliente** puede reintentar más tarde |
+| **4xx** | El servidor rechazó la petición por algo del cliente o del estado actual del recurso | **el cliente**: según el código, corrige, se autentica, espera (429) o resuelve el conflicto (409) |
+| **5xx** | El servidor no pudo completar una petición válida | **el cliente** reintenta más tarde, **sólo** si la operación es idempotente o lleva una `Idempotency-Key` |
 
 | Código | Nombre | Cuándo |
 |---|---|---|
@@ -283,7 +283,7 @@ ventas: 5 (había 4)
 | **304** | Not Modified | Tu copia sigue vigente; no se manda body (página 4) |
 | **400** | Bad Request | La petición está mal formada (body que no es JSON) |
 | **401** | Unauthorized | **No autenticado**: falta credencial o no es válida. Lleva `WWW-Authenticate` |
-| **403** | Forbidden | Te identificaste, pero **no tienes permiso** |
+| **403** | Forbidden | El servidor entendió la petición y **se niega a atenderla**; casi siempre, por falta de permiso |
 | **404** | Not Found | Ese recurso no existe |
 | **405** | Method Not Allowed | El recurso existe, ese método no. Lleva `Allow` con los permitidos |
 | **409** | Conflict | Choca con el estado actual del recurso |
@@ -291,7 +291,7 @@ ventas: 5 (había 4)
 | **500** | Internal Server Error | Error no previsto en el servidor |
 | **503** | Service Unavailable | El servidor no puede atender ahora (sobrecarga, mantenimiento) |
 
-- **401 se llama «Unauthorized» pero significa no autenticado**: el servidor no sabe quién eres. **403** es: sabe quién eres y no te deja.
+- **401 se llama «Unauthorized» pero significa no autenticado**: el servidor no sabe quién eres. **403** significa que el servidor entendió y se niega; en este servidor, porque tu token sólo puede leer.
 
 **En la vida real.**
 
@@ -348,9 +348,9 @@ El servidor escribe el status; nada obliga a que sea verdad. **jsonplaceholder**
 **Haz (celda 3.7):** crea un recurso y búscalo.
 
 ```python
-r = requests.post("https://jsonplaceholder.typicode.com/posts", json={"title": "hola"})
+r = requests.post("https://jsonplaceholder.typicode.com/posts", json={"title": "hola"}, timeout=5)
 print("POST:", r.status_code, r.reason, "· Location:", r.headers.get("Location"))
-r2 = requests.get(r.headers["Location"])
+r2 = requests.get(r.headers["Location"], timeout=5)
 print("GET :", r2.status_code, r2.reason)
 ```
 

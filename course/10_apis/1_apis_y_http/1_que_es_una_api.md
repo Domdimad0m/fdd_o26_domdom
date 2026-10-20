@@ -24,11 +24,12 @@ Meta: saber qué es una API, en qué se distingue una API de biblioteca de una A
 | **servidor** | El programa que recibe la petición y contesta | la terminal del servidor |
 | **endpoint** | Una dirección concreta de una API web donde se pide una operación | `GET /ventas` |
 | **latencia** | El tiempo entre que pides algo y te llega la respuesta | la celda 1.2 |
+| **JSON** | Un formato de texto para datos: objetos `{…}`, listas `[…]`, números, texto, `true`/`false` y `null` | la respuesta de la celda 1.1 |
 
 ## En corto
 
 - **Una API es un contrato**: dice *qué* puedes pedir y *qué* te regresa, nunca *cómo* lo calcula.
-- **Una API web cruza la red**, y eso la hace miles de veces más lenta que una función y la expone a fallas que una función no tiene.
+- **Una API web agrega red y serialización a cada llamada**: en una operación pequeña ese costo domina (miles de veces más lenta que una función, en la celda 1.2), y aparecen fallas que una función no tiene.
 - **El contrato lo controla otro**: puede cambiarlo, cobrarlo o apagarlo.
 
 ## Una API es un contrato
@@ -49,7 +50,7 @@ Las reglas forman el **contrato**. Un contrato completo dice cinco cosas:
 
 **Si lo ignoras.** Si tu código depende de un detalle que el contrato no promete (el orden en que llegan los resultados, un campo que «siempre» viene), se rompe el día que cambia la implementación, aunque nadie haya roto el contrato.
 
-**Haz (celda 1.1):** pídele al servidor su contrato.
+**Haz (celda 1.1):** pídele al servidor la lista de operaciones que ofrece.
 
 ```python
 r = requests.get(f"{URL}/")
@@ -80,7 +81,7 @@ GET /borrar?id={id}    borra con GET (mal diseño, a propósito)
 POST /reiniciar        regresa los datos al inicio
 ```
 
-- **Eso es el contrato**: qué puedes pedir y qué hace cada cosa. No dice cómo guarda las ventas; eso es implementación.
+- **Esto es una parte del contrato**: las operaciones. Un contrato completo también fija entradas, salidas, errores y reglas; las páginas 2 y 3 los muestran en acción. Nada de esto dice cómo guarda las ventas: eso es implementación.
 - Las APIs reales publican su contrato en una página de documentación, y muchas también en un archivo que las máquinas leen (el formato más común se llama **OpenAPI**).
 
 ## API de biblioteca y API web
@@ -154,7 +155,7 @@ red:       1125.267 µs
 la red fue 8,890 veces más lenta
 ```
 
-- **Miles de veces más lenta, y eso sin salir de tu máquina.** El servidor corre en la misma laptop; con un servidor en otro país hay que sumar decenas o cientos de milisegundos de viaje.
+- **Para una consulta así de pequeña, miles de veces más lenta, y sin salir de tu máquina.** Si el servidor hace algo pesado (un cálculo de minutos), la red pesa menos en el total; la proporción depende del trabajo y del entorno. El servidor corre en la misma laptop; con un servidor en otro país hay que sumar decenas o cientos de milisegundos de viaje.
 - En la terminal del servidor pasaron 200 peticiones. Cada una se **serializó** a texto, viajó, se leyó, se respondió y se volvió a convertir en dict.
 
 **Por qué importa al diseñar.** Un ciclo que llama una API una vez por fila es razonable con 100 filas y una catástrofe con un millón. Por eso las APIs ofrecen pedir muchos datos en una sola petición, y por eso conviene guardar en disco lo que ya descargaste.

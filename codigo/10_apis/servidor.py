@@ -16,6 +16,7 @@ import re
 import sys
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Lock
 from urllib.parse import parse_qs, urlsplit
 
 PUERTO = 8026
@@ -51,6 +52,7 @@ ventas = {}
 siguiente_id = 1
 respuestas_guardadas = {}   # Idempotency-Key -> (status, cuerpo)
 peticiones = 0
+candado = Lock()          # un cambio a la vez: el servidor atiende varias peticiones en paralelo
 
 
 def reiniciar():
@@ -69,9 +71,9 @@ def en_csv(filas):
     return salida.getvalue()
 
 
-def etag_de(datos):
-    huella = hashlib.sha256(json.dumps(datos, sort_keys=True).encode()).hexdigest()
-    return f'"{huella[:12]}"'
+def etag_de(cuerpo):
+    """Huella de los bytes exactos de una representación."""
+    return f'"{hashlib.sha256(cuerpo).hexdigest()[:12]}"'
 
 
 def imprime(texto=""):
@@ -112,26 +114,30 @@ class Ventas(BaseHTTPRequestHandler):
         headers = dict(headers or {})
         cuerpo = b""
         if datos is not None:
-            if tipo is None:
-                quiere_csv = "text/csv" in self.headers.get("Accept", "")
-                tipo = "text/csv; charset=utf-8" if quiere_csv else "application/json"
-            if tipo.startswith("text/csv"):
-                filas = datos if isinstance(datos, list) else [datos]
-                cuerpo = en_csv(filas).encode()
-            elif tipo.startswith("text/html"):
-                cuerpo = datos.encode()
-            else:
-                cuerpo = json.dumps(datos, ensure_ascii=False).encode()
+            tipo, cuerpo = self.serializa(datos, tipo)
             headers["Content-Type"] = tipo
         self.send_response(status)
         for nombre, valor in headers.items():
             self.send_header(nombre, valor)
-        self.send_header("Content-Length", str(len(cuerpo)))
+        if status not in (204, 304):   # esas dos respuestas nunca llevan body
+            self.send_header("Content-Length", str(len(cuerpo)))
         self.end_headers()
         if self.command != "HEAD":
             self.wfile.write(cuerpo)
         imprime(f"  ⇢ respondí {status} {self.responses[status][0]}"
                 f"   · ventas guardadas: {len(ventas)}")
+
+    def serializa(self, datos, tipo=None):
+        """Convierte datos de Python en (Content-Type, bytes), según Accept."""
+        if tipo is None:
+            quiere_csv = "text/csv" in self.headers.get("Accept", "")
+            tipo = "text/csv; charset=utf-8" if quiere_csv else "application/json"
+        if tipo.startswith("text/csv"):
+            filas = datos if isinstance(datos, list) else [datos]
+            return tipo, en_csv(filas).encode()
+        if tipo.startswith("text/html"):
+            return tipo, datos.encode()
+        return tipo, json.dumps(datos, ensure_ascii=False).encode()
 
     def error(self, status, mensaje, headers=None):
         self.responder(status, {"error": mensaje}, headers, tipo="application/json")
@@ -180,17 +186,24 @@ class Ventas(BaseHTTPRequestHandler):
         self.error(404, f"no existe {self.ruta}")
 
     def con_etag(self, datos):
-        etiqueta = etag_de(datos)
-        if self.headers.get("If-None-Match") == etiqueta:
-            return self.responder(304, headers={"ETag": etiqueta})
-        self.responder(200, datos, {"ETag": etiqueta})
+        tipo, cuerpo = self.serializa(datos)
+        # Cada representación (JSON o CSV) tiene su propia huella, y Vary avisa
+        # a las cachés que la respuesta depende del header Accept.
+        headers = {"ETag": etag_de(cuerpo), "Vary": "Accept"}
+        if self.headers.get("If-None-Match") == headers["ETag"]:
+            return self.responder(304, headers=headers)
+        self.responder(200, datos, headers, tipo=tipo)
 
     def do_HEAD(self):
         self.do_GET()
 
     def do_POST(self):
-        global siguiente_id
         cuerpo = self.leer()
+        with candado:
+            self.crear(cuerpo)
+
+    def crear(self, cuerpo):
+        global siguiente_id
         if self.ruta == "/reiniciar":
             reiniciar()
             return self.responder(200, {"ok": True, "ventas": len(ventas)})
@@ -206,6 +219,10 @@ class Ventas(BaseHTTPRequestHandler):
             nueva = json.loads(cuerpo)
         except json.JSONDecodeError:
             return self.error(400, "el body no es JSON válido")
+        if not isinstance(nueva, dict):
+            return self.error(400, "el body debe ser un objeto JSON")
+        while siguiente_id in ventas:  # un PUT pudo haber ocupado este id
+            siguiente_id += 1
         nueva["id"] = siguiente_id
         ventas[siguiente_id] = nueva
         siguiente_id += 1
@@ -220,8 +237,15 @@ class Ventas(BaseHTTPRequestHandler):
             return self.error(405, "PUT va a una venta: /ventas/{id}", {"Allow": "GET, HEAD, POST"})
         if not self.autorizado():
             return
-        existia = i in ventas
-        ventas[i] = {**json.loads(cuerpo), "id": i}
+        try:
+            nueva = json.loads(cuerpo)
+        except json.JSONDecodeError:
+            return self.error(400, "el body no es JSON válido")
+        if not isinstance(nueva, dict):
+            return self.error(400, "el body debe ser un objeto JSON")
+        with candado:
+            existia = i in ventas
+            ventas[i] = {**nueva, "id": i}
         self.responder(200 if existia else 201, ventas[i])
 
     def do_DELETE(self):
@@ -231,7 +255,9 @@ class Ventas(BaseHTTPRequestHandler):
             return self.error(405, "DELETE va a una venta: /ventas/{id}", {"Allow": "GET, HEAD, POST"})
         if not self.autorizado():
             return
-        if ventas.pop(i, None) is None:
+        with candado:
+            borrada = ventas.pop(i, None)
+        if borrada is None:
             return self.error(404, f"no hay venta {i}")
         self.responder(204)
 
