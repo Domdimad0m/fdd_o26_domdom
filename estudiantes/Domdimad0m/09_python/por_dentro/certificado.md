@@ -4,20 +4,19 @@ Llena este archivo en **tu copia**, dentro de `estudiantes/<tu-login>/09_python/
 
 ## Quién soy
 
-- Usuario de GitHub:
-- Usuario de DataCamp:
+- Usuario de GitHub: Domdimad0m
+- Usuario de DataCamp: Dominique
 
 El repositorio es público: no escribas aquí tu nombre completo ni tu correo.
 
 ## Intermediate Python for Developers
 
-Fecha en que lo terminaste (AAAA-MM-DD):
+Fecha en que lo terminaste (AAAA-MM-DD): 26/10/2026
 
-URL del Statement of Accomplishment:
+URL del Statement of Accomplishment: https://www.datacamp.com/completed/statement-of-accomplishment/course/051cf7e9ca5458ffcf3c1d6dccadf5a3ae348303
 
 ![Captura del curso Intermediate Python for Developers terminado](./intermedio-python-developers.png)
 
 ## Una cosa que aprendiste y no sabías
 
-Dos o tres líneas: algo concreto del curso que no sabías, o que tenías a medias
-y ahí se te acomodó.
+Aprendí como funcionan las funciones lambda que antes solo vibe-codeaba también reforcé el uso del try y except en python. la función raise fue nueva para mí. En general aprendí a simplificar mi forma de corregir errores y de crear funciones.
