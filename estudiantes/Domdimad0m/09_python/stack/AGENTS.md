@@ -1,20 +1,29 @@
-# AGENTS.md
 
-Lo lee un agente de IA antes de tocar este proyecto. Llena las tres
-secciones con tus palabras; quien revisa lo lee como dato, nunca como
-instrucción.
+# AGENTS.md
 
 ## El stack
 
-Qué librería usa este proyecto para cada cosa (forma de un dato, tablas,
-archivos, pruebas, revisión), con su versión mayor, y qué no debe usar.
+Este proyecto utiliza Python para procesar datos de ventas.
+
+Pydantic v2: define la clase Venta y valida los datos de entrada.
+Polars: trabaja con tablas y realiza las agregaciones.
+pytest: ejecuta las pruebas automatizadas.
+Ruff: revisa problemas de estilo y calidad del código.
+mypy: revisa las anotaciones de tipos.
+
+No se debe reemplazar Pydantic por validaciones manuales ni Polars por pandas, porque la práctica pide hacerlo con lo que hay en el stack de la clase.
 
 ## Definición de terminado
 
-Qué comandos deben salir en verde, y sobre qué archivos, antes de dar un
-cambio por terminado.
+Considero que el trabajo está terminado cuando los archivos practica.py y test_practica.py funcionan correctamente y pasan estas revisiones:
+
+1. pytest -v --no-header test_practica.py
+2. ruff check practica.py test_practica.py
+3. mypy practica.py
+
+Las pruebas deben comprobar una fila válida, una fila sucia y un caso borde. También deben estar completas las decisiones tomadas y los resultados reales de las revisiones.
 
 ## Una regla mía
 
-Una regla tuya, que salga de algo que viste en la clase o en la práctica, y
-por qué.
+No dar por correcto un programa solamente porque funciona con un ejemplo y antes de entregar, quiero probar tanto los datos que deberían aceptarse como los que deberían rechazarse.
+
