@@ -11,7 +11,7 @@ El repositorio es público: no escribas aquí tu nombre completo ni tu correo.
 
 ## Intermediate Python for Developers
 
-Fecha en que lo terminaste (AAAA-MM-DD): 26-10-2026
+Fecha en que lo terminaste (AAAA-MM-DD): 2026-10-26
 
 URL del Statement of Accomplishment: https://www.datacamp.com/completed/statement-of-accomplishment/course/051cf7e9ca5458ffcf3c1d6dccadf5a3ae348303
 
